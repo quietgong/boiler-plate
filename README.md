@@ -1,2 +1,2 @@
 # boiler-plate
-React + Node.js (Tutor : Johnahn)
+React + Node.js (Tutor : John Ahn)

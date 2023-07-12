@@ -1,20 +1,18 @@
 const express = require('express')
 const app = express()
 const port = 5000
+const bodyParser = require('body-parser');
+const { User } = require('./models/User');
+const config = require('./config/key');
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // MongoDB 연결
 const mongoose = require('mongoose');
 mongoose
   .connect(
-    'mongodb+srv://jay:1234@boilerplate.cjjzcb1.mongodb.net/?retryWrites=true&w=majority',
+    config.mongoURI,
     {
       // useNewUrlPaser: true,
       // useUnifiedTofology: true,
@@ -26,3 +24,30 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+app.post('/register', async (req, res) => {
+  const user = new User(req.body);
+
+  await user
+    .save()
+    .then(() => {
+      res.status(200).json({
+        success: true,
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      res.json({
+        success: false,
+        err: err,
+      })
+    })
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
