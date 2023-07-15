@@ -36,7 +36,6 @@ const userSchema = mongoose.Schema({
 
 userSchema.statics.findByToken = function(token, cb){
   let user= this;
-
   // 토큰 decode
   jwt.verify(token, 'secretToken', function (err, decoded){
     // 유저 아이디를 이용해서 유저를 찾은 다음,
@@ -50,13 +49,17 @@ userSchema.statics.findByToken = function(token, cb){
   })
 }
 
-userSchema.methods.comparePassword = function (plainPassword, cb) {
-  bcrypt.compare(plainPassword, this.password, function (err, isMatch) {
-    if (err) return cb(err);
-    cb(null, isMatch)
-  });
+userSchema.methods.comparePassword = function (plainPassword) {
+  return new Promise((resolve, reject)=>{
+    bcrypt.compare(plainPassword, this.password, (err, isMatch) => {
+      if (err){
+        reject(err);
+      } else{
+        resolve(isMatch)
+      }
+    });
+  })
 }
-
 
 userSchema.methods.generateToken = function (cb) {
   let user = this;
@@ -65,8 +68,7 @@ userSchema.methods.generateToken = function (cb) {
 
   user.token = token;
 
-  user
-    .save()
+  user.save()
     .then(() => {
       return ({
         success: true,
@@ -88,9 +90,8 @@ userSchema.pre('save', function (next) {
   // 비밀번호 변경 요청 시에만 수행
   if (user.isModified('password')) {
     bcrypt.genSalt(saltRounds, function (err, salt) {
-      if (err) {
-        return next(err);
-      }
+      if (err) return next(err);
+
       bcrypt.hash(user.password, salt, function (err, hash) {
         if (err) return next(err);
         user.password = hash; // 해싱된 비밀번호로 교체
