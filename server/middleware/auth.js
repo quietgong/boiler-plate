@@ -1,4 +1,4 @@
-const { User} = require('../server/models/User');
+const { User } = require('../models/User');
 
 let auth = (req,res,next)=>{
   // 인증 처리 수행
